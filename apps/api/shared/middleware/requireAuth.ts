@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 import { verifyAccessToken } from "../utils/token";
 import { User } from "../../modules/user/user.model";
 
@@ -52,7 +52,7 @@ async function requireAuth(
             id: user.id,
             email: user.email,
             name: user.name,
-            role: user.role as string,
+            role: user.role,
         };
 
         next();

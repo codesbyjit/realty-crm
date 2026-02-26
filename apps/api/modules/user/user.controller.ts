@@ -1,5 +1,5 @@
-import { Request, Response } from "express";
-import { AuthenticatedRequest } from "../../shared/middleware/requireAuth";
+import type { Request, Response } from "express";
+import type { AuthenticatedRequest } from "../../shared/middleware/requireAuth";
 import { userService } from "./user.service";
 
 export async function getMe(req: Request, res: Response): Promise<void> {

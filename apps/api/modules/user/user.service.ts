@@ -1,5 +1,5 @@
 import { User } from "./user.model";
-import { IUser, UserResponse } from "./user.types";
+import type { IUser, UserResponse } from "./user.types";
 
 class UserService {
     async findById(id: string): Promise<IUser | null> {

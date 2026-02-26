@@ -1,5 +1,5 @@
-import { Request, Response, NextFunction } from "express";
-import { AuthenticatedRequest } from "./requireAuth";
+import type { Request, Response, NextFunction } from "express";
+import type { AuthenticatedRequest } from "./requireAuth";
 
 function requireRole(role: string) {
     return (req: Request, res: Response, next: NextFunction): void => {

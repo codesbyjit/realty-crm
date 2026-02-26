@@ -9,6 +9,6 @@ const router = Router();
 router.get("/me", requireAuth, getMe);
 
 // GET /user/admin/users — admin-only: list all users
-router.get("/admin/users", requireAuth, requireRole("admin"), getAllUsers);
+router.get("/admin/users", requireAuth, requireRole("ADMIN"), getAllUsers);
 
 export default router;
