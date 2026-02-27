@@ -5,10 +5,16 @@ import { usePathname, useRouter } from "next/navigation";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { SettingsButton } from "@/components/settings-button";
 import { ApiUrlDisplay } from "@/components/api-url-display";
-import { Search, ChevronRight, Terminal, X } from "lucide-react";
+import { Search, ChevronRight, ChevronDown, Terminal, X } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 
-const navigation = [
+type NavItem = { title: string; href: string };
+type NavCategory = { name: string; items: NavItem[] };
+type NavSection =
+  | { title: string; items: NavItem[] }
+  | { title: string; categories: NavCategory[] };
+
+const navigation: NavSection[] = [
   {
     title: "Getting Started",
     items: [
@@ -23,47 +29,59 @@ const navigation = [
   },
   {
     title: "API Reference",
-    items: [
-      { title: "Register", href: "/docs/api-reference/auth/register" },
-      { title: "Login", href: "/docs/api-reference/auth/login" },
-      { title: "Refresh Token", href: "/docs/api-reference/auth/refresh" },
-      { title: "Logout", href: "/docs/api-reference/auth/logout" },
-      { title: "Google OAuth", href: "/docs/api-reference/auth/google-oauth" },
-      { title: "Get Current User", href: "/docs/api-reference/users/me" },
+    categories: [
       {
-        title: "Admin: Get All Users",
-        href: "/docs/api-reference/users/admin-users",
+        name: "Authentication",
+        items: [
+          { title: "Register", href: "/docs/api-reference/auth/register" },
+          { title: "Login", href: "/docs/api-reference/auth/login" },
+          { title: "Refresh Token", href: "/docs/api-reference/auth/refresh" },
+          { title: "Logout", href: "/docs/api-reference/auth/logout" },
+          {
+            title: "Google OAuth",
+            href: "/docs/api-reference/auth/google-oauth",
+          },
+        ],
       },
       {
-        title: "Create Workspace",
-        href: "/docs/api-reference/workspace/create",
+        name: "User",
+        items: [
+          { title: "Get Current User", href: "/docs/api-reference/users/me" },
+          {
+            title: "Admin: Get All Users",
+            href: "/docs/api-reference/users/admin-users",
+          },
+        ],
       },
       {
-        title: "Add Members",
-        href: "/docs/api-reference/memberships/add-members",
+        name: "Workspace",
+        items: [
+          {
+            title: "Create Workspace",
+            href: "/docs/api-reference/workspace/create",
+          },
+        ],
       },
       {
-        title: "Get Workspace Members",
-        href: "/docs/api-reference/memberships/workspace-members",
-      },
-      {
-        title: "Update Membership",
-        href: "/docs/api-reference/memberships/update",
-      },
-      {
-        title: "Remove Member",
-        href: "/docs/api-reference/memberships/remove",
-      },
-    ],
-  },
-  {
-    title: "Concepts",
-    items: [
-      { title: "JWT Authentication", href: "/docs/concepts/jwt-auth" },
-      { title: "Role-Based Access Control", href: "/docs/concepts/rbac" },
-      {
-        title: "Workspace & Memberships",
-        href: "/docs/concepts/workspace-memberships",
+        name: "Membership",
+        items: [
+          {
+            title: "Add Members",
+            href: "/docs/api-reference/memberships/add-members",
+          },
+          {
+            title: "Get Workspace Members",
+            href: "/docs/api-reference/memberships/workspace-members",
+          },
+          {
+            title: "Update Membership",
+            href: "/docs/api-reference/memberships/update",
+          },
+          {
+            title: "Remove Member",
+            href: "/docs/api-reference/memberships/remove",
+          },
+        ],
       },
     ],
   },
@@ -186,7 +204,21 @@ export function Sidebar() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<typeof searchIndex>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [openCategories, setOpenCategories] = useState<string[]>([
+    "Authentication",
+    "User",
+    "Workspace",
+    "Membership",
+  ]);
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  const toggleCategory = (category: string) => {
+    setOpenCategories((prev) =>
+      prev.includes(category)
+        ? prev.filter((c) => c !== category)
+        : [...prev, category],
+    );
+  };
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -392,28 +424,73 @@ export function Sidebar() {
               <h3 className="font-medium text-xs text-[var(--muted-foreground)] uppercase tracking-wider mb-2 px-2">
                 {section.title}
               </h3>
-              <ul className="space-y-0.5">
-                {section.items.map((item) => {
-                  const isActive = pathname === item.href;
-                  return (
-                    <li key={item.href}>
-                      <Link
-                        href={item.href}
-                        className={`flex items-center gap-2 px-2 py-1.5 text-sm rounded-md transition-colors ${
-                          isActive
-                            ? "bg-[var(--muted)] text-[var(--foreground)] font-medium"
-                            : "text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]"
-                        }`}
+
+              {"categories" in section ? (
+                <div className="space-y-2">
+                  {section.categories.map((category) => (
+                    <div key={category.name}>
+                      <button
+                        onClick={() => toggleCategory(category.name)}
+                        className="flex items-center gap-2 w-full px-2 py-1.5 text-sm font-medium text-[var(--foreground)] hover:bg-[var(--muted)] rounded-md transition-colors"
                       >
-                        <ChevronRight
-                          className={`w-3 h-3 ${isActive ? "opacity-100" : "opacity-0"}`}
-                        />
-                        {item.title}
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
+                        {openCategories.includes(category.name) ? (
+                          <ChevronDown className="w-3.5 h-3.5" />
+                        ) : (
+                          <ChevronRight className="w-3.5 h-3.5" />
+                        )}
+                        {category.name}
+                      </button>
+                      {openCategories.includes(category.name) && (
+                        <ul className="ml-5 mt-1 space-y-0.5 border-l border-[var(--border)] pl-2">
+                          {category.items.map((item) => {
+                            const isActive = pathname === item.href;
+                            return (
+                              <li key={item.href}>
+                                <Link
+                                  href={item.href}
+                                  className={`flex items-center gap-2 px-2 py-1.5 text-sm rounded-md transition-colors ${
+                                    isActive
+                                      ? "bg-[var(--muted)] text-[var(--foreground)] font-medium"
+                                      : "text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]"
+                                  }`}
+                                >
+                                  <ChevronRight
+                                    className={`w-3 h-3 ${isActive ? "opacity-100" : "opacity-0"}`}
+                                  />
+                                  {item.title}
+                                </Link>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <ul className="space-y-0.5">
+                  {section.items.map((item) => {
+                    const isActive = pathname === item.href;
+                    return (
+                      <li key={item.href}>
+                        <Link
+                          href={item.href}
+                          className={`flex items-center gap-2 px-2 py-1.5 text-sm rounded-md transition-colors ${
+                            isActive
+                              ? "bg-[var(--muted)] text-[var(--foreground)] font-medium"
+                              : "text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]"
+                          }`}
+                        >
+                          <ChevronRight
+                            className={`w-3 h-3 ${isActive ? "opacity-100" : "opacity-0"}`}
+                          />
+                          {item.title}
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
             </div>
           ))}
         </nav>
