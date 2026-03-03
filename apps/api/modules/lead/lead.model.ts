@@ -39,7 +39,7 @@ const leadSchema = new mongoose.Schema<ILead>({
     },
     campaignId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Campaing",
+        ref: "Campaign",
     },
     status: {
         type: String,
